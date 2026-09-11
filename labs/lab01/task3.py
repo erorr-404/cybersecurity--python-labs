@@ -1,14 +1,15 @@
-import hashlib
 import csv
-
-from shared import student
-from rich.console import Console
-from rich.table import Table
-from pathlib import Path
-from functools import wraps
+import hashlib
 import json
 from datetime import datetime
+from functools import wraps
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
+from rich.console import Console
+from rich.table import Table
+
+from shared import student
 
 SALT = f"{student.VARIANT_NUMBER:05}"
 MINIMUM_PASSWORD_LENGTH = 8
@@ -17,7 +18,7 @@ USER_CSV_DB_PATH = "labs/lab01/data/users.csv"
 JSON_LOG_PATH = "labs/lab01/data/log.json"
 ERROR_STYLE = "bold red"
 
-users_db: dict[str, str] = dict()
+users_db: dict[str, str] = {}
 console = Console()
 
 class ValidationError(Exception):
@@ -42,7 +43,7 @@ def log_event(func):
             "event": "login",
             "user": username,
             "result": "success" if result else "failure",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), #"YYYY-MM-DD HH:MM:SS"
+            "timestamp": datetime.now(tz=ZoneInfo("Europe/Kyiv")).strftime("%Y-%m-%d %H:%M:%S"), #"YYYY-MM-DD HH:MM:SS"
             "args": [],
             "kwargs": {}
         }
@@ -62,7 +63,7 @@ def log_event(func):
                 file.truncate()
         
         except json.JSONDecodeError:
-            console.print(f"JSONDecodeError: can not read JSON file to")
+            console.print("JSONDecodeError: can not read JSON file.")
         
         except FileNotFoundError:
             console.print(f"FileNotFoundError: can not find file {JSON_LOG_PATH}.", style=ERROR_STYLE)
@@ -70,7 +71,7 @@ def log_event(func):
         except PermissionError:
             console.print(f"PermissionError: can not open file {JSON_LOG_PATH} due to insufficient permissions.", style=ERROR_STYLE)
         
-        except IOError:
+        except OSError:
             console.print(f"IOError during work with file {JSON_LOG_PATH}.")  
 
         
@@ -118,11 +119,8 @@ def login(username: str, password: str) -> bool:
     if not user_exists(username):
         return False
     
-    hashed_password = generate_hash(password, SALT)
-    if users_db[username] == hashed_password:
-        return True
-    
-    return False
+    return users_db[username] == generate_hash(password, SALT)
+
 
 def main():
     users_to_register = (
@@ -143,7 +141,7 @@ def main():
             create_users(users_to_register)
             console.print("Users created!", style="green")
         except ValidationError:
-            console.print(f"ValidationError occured during user registering.", style=ERROR_STYLE)
+            console.print("ValidationError occured during user registering.", style=ERROR_STYLE)
     else:
         console.print("Users already created.", style="magenta")
     
@@ -166,7 +164,7 @@ def main():
     except PermissionError:
         console.print(f"PermissionError: can not open file {USER_CSV_DB_PATH} due to insufficient permissions.", style=ERROR_STYLE)
     
-    except IOError:
+    except OSError:
         console.print(f"IOError during work with file {USER_CSV_DB_PATH}.")  
     
 if __name__ == "__main__":
