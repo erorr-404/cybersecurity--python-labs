@@ -1,7 +1,6 @@
 from rich.console import Console
 from rich.table import Table
 
-
 users = {
     "security_chief": {
         "role": "security_officer",

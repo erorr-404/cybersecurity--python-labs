@@ -1,8 +1,8 @@
 import random
 import string
+
 from rich.console import Console
 from rich.table import Table
-
 
 DIGITS = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
 UPPER = set(string.ascii_uppercase)

@@ -1,0 +1,34 @@
+[
+    {
+        "event": "login",
+        "user": "admin",
+        "result": "success",
+        "timestamp": "2026-09-11 19:20:36",
+        "args": [],
+        "kwargs": {}
+    },
+    {
+        "event": "login",
+        "user": "admin",
+        "result": "success",
+        "timestamp": "2026-09-11 19:20:48",
+        "args": [],
+        "kwargs": {}
+    },
+    {
+        "event": "login",
+        "user": "admin",
+        "result": "failure",
+        "timestamp": "2026-09-11 19:20:55",
+        "args": [],
+        "kwargs": {}
+    },
+    {
+        "event": "login",
+        "user": "admin",
+        "result": "success",
+        "timestamp": "2026-09-11 19:23:17",
+        "args": [],
+        "kwargs": {}
+    }
+]
