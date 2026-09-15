@@ -111,8 +111,7 @@ def main():
         styled_result = f"[{color}]{result}[/{color}]" if color else result
         table.add_row(f"{i:02}", password, styled_result)
 
-    console.print(table)
-    console.print("Check finished.")
+    console.print(table, justify="center")
 
 
 if __name__ == "__main__":

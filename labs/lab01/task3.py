@@ -143,7 +143,7 @@ def main():
         except ValidationError:
             console.print("ValidationError occured during user registering.", style=ERROR_STYLE)
     else:
-        console.print("Users already created.", style="magenta")
+        console.print("Users already created.", style="yellow", justify="center")
     
     try:
         with open(USER_CSV_DB_PATH, mode='r', encoding='utf-8', newline='') as file:
@@ -156,7 +156,8 @@ def main():
                 users_db[row[0]] = row[1]
                 table.add_row(*row)
             
-            console.print(table)
+            console.print(table, justify="center")
+            console.print("To see interactive exec shell, launch module using this command: [bold]python -m labs.lab01.task3[/bold]", justify="center")
     
     except FileNotFoundError:
         console.print(f"FileNotFoundError: can not find file {USER_CSV_DB_PATH}.", style=ERROR_STYLE)

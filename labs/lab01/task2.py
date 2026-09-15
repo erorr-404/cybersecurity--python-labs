@@ -88,7 +88,7 @@ def can_user_access_resource(user: str, resource: tuple[str, int]) -> tuple[bool
 def main():
     console = Console()
     resource_table = get_table_of_resources(resources, security_levels)
-    console.print(resource_table)
+    console.print(resource_table, justify="center")
     
     users_to_check = list(users.keys()) + list(blocked_users)
     
@@ -102,7 +102,7 @@ def main():
             access = can_user_access_resource(username, resource)
             third_column_text = "[green]ALLOW[/green]" if access[0] else f"[red]DENY[/red] ({access[1]})"
             user_access_table.add_row(username, resource[0], third_column_text)
-    console.print(user_access_table)
+    console.print(user_access_table, justify="center")
 
 if __name__ == "__main__":
     main()
