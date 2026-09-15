@@ -1,3 +1,5 @@
+labs/lab01/data/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+labs/lab01/data/log.json
+labs/lab01/data/users.csv

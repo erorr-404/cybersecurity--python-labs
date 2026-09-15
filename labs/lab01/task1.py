@@ -4,10 +4,11 @@ import string
 from rich.console import Console
 from rich.table import Table
 
-DIGITS = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
-UPPER = set(string.ascii_uppercase)
-LOWER = set(string.ascii_lowercase)
-SPECIAL = set(string.punctuation)
+DIGITS = set(string.digits)  # = "0123456789"
+UPPER = set(string.ascii_uppercase)  # "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LOWER = set(string.ascii_lowercase)  # "abcdefghijklmnopqrstuvwxyz"
+SPECIAL = set(string.punctuation)  # "!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
+
 
 passwords = [
     "UserPass1!",
@@ -30,7 +31,10 @@ criteria = {
 forbidden_passwords = {"temp", "guest", "login", "demo", "abc123", "user"}
 
 
-def has(s: str, symbols: set) -> bool:
+def has(s: str, symbols: set[str]) -> bool:
+    """Returns True, if `s` contains on of symbol from `symbols`, else False. \n
+    `symbols` - set, which contains string with one symbol in each
+    """
     for d in symbols:
         if d in s:
             return True
@@ -38,66 +42,98 @@ def has(s: str, symbols: set) -> bool:
 
 
 def has_digits(passwd: str) -> bool:
+    """Returns True, if `passwd` contains at least one character from `DIGITS` set."""
     return has(passwd, DIGITS)
 
 
 def has_upper(passwd: str) -> bool:
+    """Return whether ``passwd`` contains at least one uppercase letter."""
     return has(passwd, UPPER)
 
 
 def has_lower(passwd: str) -> bool:
+    """Return whether ``passwd`` contains at least one lowercase letter."""
     return has(passwd, LOWER)
 
 
 def has_special(passwd: str) -> bool:
+    """Return whether ``passwd`` contains at least one special character."""
     return has(passwd, SPECIAL)
 
 
 def has_two_out_of_three(ls: tuple) -> bool:
+    """Return whether at least two of the three values in ``ls`` are true."""
     return (ls[0] and ls[1]) or (ls[0] and ls[2]) or (ls[1] and ls[2])
 
 
-def is_unique(passwd: str, passwds: list) -> bool:
-    return passwds.count(passwd) == 1
+def is_unique(passwd: str, passwords: list) -> bool:
+    """Return whether ``passwd`` occurs exactly once in ``passwords``."""
+    return passwords.count(passwd) == 1
 
 
-def validate_password(passwd: str, passwds) -> str:
-    passwd_length = len(passwd)
-    passwd_has_digits = not criteria.get("require_digits") or has_digits(passwd)
-    passwd_has_upper = not criteria.get("require_upper") or has_upper(passwd)
-    passwd_has_lower = not criteria.get("require_lower") or has_lower(passwd)
-    passwd_has_special = not criteria.get("require_special") or has_special(passwd)
+def validate_password(passwd: str, passwords: list[str]) -> str:
+    """Evaluate a password against the configured security criteria.
 
-    if passwd in forbidden_passwords or passwd_length < criteria["min_length"]:
+    Return a strength classification based on the password's length,
+    character composition, forbidden-password status, and uniqueness.
+    """
+
+    # check if password is forbidden and its minimum length
+    if passwd in forbidden_passwords or len(passwd) < criteria["min_length"]:
         return "Forbidden"
 
-    if all((passwd_has_digits, passwd_has_upper, passwd_has_special)):
-        if passwd_length >= criteria["min_length"] + 4 and is_unique(passwd, passwds):
+    # criteria check
+    passwd_has_digits: bool = has_digits(passwd)
+    passwd_has_upper: bool = has_upper(passwd)
+    passwd_has_lower: bool = has_lower(passwd)
+    passwd_has_special: bool = has_special(passwd)
+
+    rule_check = []
+
+    # list of required criteria
+    if criteria.get("require_digits"):
+        rule_check.append(passwd_has_digits)
+    if criteria.get("require_upper"):
+        rule_check.append(passwd_has_upper)
+    if criteria.get("require_special"):
+        rule_check.append(passwd_has_special)
+
+    # calculate how many rules are met
+    rules_met = sum(rule_check)
+    total_rules = len(rule_check)
+
+    # all rules met
+    if rules_met == total_rules:
+        # unique and long enough
+        if len(passwd) >= criteria["min_length"] + 4 and is_unique(passwd, passwords):
             return "Very strong"
         return "Strong"
 
-    if has_two_out_of_three((passwd_has_digits, passwd_has_upper, passwd_has_special)):
+    if rules_met >= 2:
         return "Medium"
 
-    if any((passwd_has_digits, passwd_has_upper, passwd_has_special, passwd_has_lower)):
+    if rules_met >= 1 or passwd_has_lower:
         return "Weak"
 
-    return "Error: validation failed."
+    return "Forbidden"
 
 
 def main():
     console = Console()
     initial_passwords_len = len(passwords)
 
+    # generates 3 random password duplicates
     for i in range(3):
         random_index = random.randint(0, initial_passwords_len - 1)
         passwords.append(passwords[random_index])
 
+    # creates table for password security level test results
     table = Table(title="Passwords security", title_style="bold magenta")
     table.add_column("№", no_wrap=True)
     table.add_column("Password")
     table.add_column("Result")
 
+    # fills the table, with color based on the validation result
     for i, password in enumerate(passwords):
         result = validate_password(password, passwords)
         result_colors = {

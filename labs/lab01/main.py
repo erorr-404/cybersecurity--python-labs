@@ -1,24 +1,19 @@
-from labs.lab01 import task1
-from labs.lab01 import task2
-from labs.lab01 import task3
 from rich.console import Console
+
+from labs.lab01 import task1, task2, task3
 
 if __name__ == "__main__":
     c = Console()
-    
-    c.rule()
+
     c.print("Результат виконання лабораторної роботи", justify="center", style="bold")
-    
-    c.print("Завдання 1", justify="center", style="italic")
+
+    c.rule("Завдання 1", style="italic")
     task1.main()
-    
-    c.rule()
-    c.print("Завдання 2", justify="center", style="italic")
+
+    c.rule("Завдання 2", style="italic")
     task2.main()
-    
-    c.rule()
-    c.print("Завдання 3", justify="center", style="italic")
+
+    c.rule("Завдання 3", style="italic")
     task3.main()
-    
-    c.print("Виконання завершено", justify="center")
-    c.rule()
+
+    c.rule("Виконання завершено")
