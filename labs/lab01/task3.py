@@ -112,7 +112,12 @@ def generate_hash(password: str, salt: str = "00000") -> str:
 
 def create_user(username: str, password: str) -> tuple[str, str]:
     """Return a username and its salted password hash."""
-
+    if not username:
+        raise ValueError("Username can not be empty.")
+    
+    if not password:
+        raise ValueError("Password can not be empty.")
+    
     h = generate_hash(password, SALT)
     return (username, h)
 
