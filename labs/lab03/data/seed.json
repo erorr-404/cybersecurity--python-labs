@@ -1,0 +1,74 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "web"
+    },
+    {
+      "id": 2,
+      "name": "browser"
+    },
+    {
+      "id": 3,
+      "name": "office"
+    }
+  ],
+  "records": [
+    {
+      "code": "V01-01",
+      "title": "Знахідка станції 01",
+      "category_id": 1,
+      "value": 9.1,
+      "status": "new"
+    },
+    {
+      "code": "V01-02",
+      "title": "Знахідка станції 02",
+      "category_id": 2,
+      "value": 2.7,
+      "status": "in_progress"
+    },
+    {
+      "code": "V01-03",
+      "title": "Знахідка станції 03",
+      "category_id": 3,
+      "value": 6.1,
+      "status": "done"
+    },
+    {
+      "code": "V01-04",
+      "title": "Знахідка станції 04",
+      "category_id": 1,
+      "value": 9.4,
+      "status": "new"
+    },
+    {
+      "code": "V01-05",
+      "title": "Знахідка станції 05",
+      "category_id": 2,
+      "value": 4.8,
+      "status": "done"
+    },
+    {
+      "code": "V01-06",
+      "title": "Знахідка станції 06",
+      "category_id": 3,
+      "value": 7.0,
+      "status": "in_progress"
+    },
+    {
+      "code": "V01-07",
+      "title": "Знахідка станції 07",
+      "category_id": 1,
+      "value": 8.0,
+      "status": "done"
+    },
+    {
+      "code": "V01-08",
+      "title": "Знахідка станції 08",
+      "category_id": 2,
+      "value": 5.5,
+      "status": "new"
+    }
+  ]
+}
