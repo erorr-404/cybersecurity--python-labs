@@ -1,5 +1,4 @@
 # fast-api застосунок
-# TODO: SQL exception convert to HTTP-errors in api level'
 from fastapi import FastAPI
 import shared.student as stud
 from labs.lab03.routers import records as records, categories as categories
