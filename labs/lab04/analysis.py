@@ -16,6 +16,12 @@ def validate_optional_string(value):
     return value
 
 
+def not_null(value):
+    if value is None:
+        raise ValueError("Explicit null is not allowed.")
+    return value
+
+
 OptionalNonEmptyString = Annotated[
     str | None, BeforeValidator(validate_optional_string)
 ]
@@ -34,35 +40,23 @@ class CVSSDataV31(BaseModel):
     vectorString: OptionalNonEmptyString = None
     baseScore: Annotated[float, Field(strict=True, ge=0, le=10, allow_inf_nan=False)]
 
-    baseSeverity: Literal["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"] | None = None
-    attackVector: Literal["NETWORK", "ADJACENT_NETWORK", "LOCAL", "PHYSICAL"] | None = (
-        None
-    )
-    attackComplexity: Literal["LOW", "HIGH"] | None = None
     privilegesRequired: Annotated[
         Literal["NONE", "LOW", "HIGH"] | None, BeforeValidator(validate_optional_string)
     ] = None
-    userInteraction: Literal["NONE", "REQUIRED"] | None = None
-    scope: Literal["UNCHANGED", "CHANGED"] | None = None
-
-    confidentialityImpact: Literal["NONE", "LOW", "HIGH"] | None = None
-    integrityImpact: Literal["NONE", "LOW", "HIGH"] | None = None
-    availabilityImpact: Literal["NONE", "LOW", "HIGH"] | None = None
 
 
 class CVSSMetricV31(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
     source: OptionalNonEmptyString = None
-    type: Literal["Primary", "Secondary"] | None = None
     cvssData: CVSSDataV31
-    exploitabilityScore: float | None = None
-    impactScore: float | None = None
 
 
 class CVSSMetrics(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
-    cvss_metric_v31: list[dict] | None = Field(default=None, alias="cvssMetricV31")
+    cvss_metric_v31: Annotated[list[dict] | None, BeforeValidator(not_null)] = Field(
+        default=None, alias="cvssMetricV31"
+    )
 
 
 class CVEDescription(BaseModel):
@@ -76,11 +70,11 @@ class CVE(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
     id: str
-    vuln_status: Annotated[str, StringConstraints(min_length=1, strict=True)] | None = (
-        Field(default=None, alias="vulnStatus")
+    vuln_status: OptionalNonEmptyString = Field(default=None, alias="vulnStatus")
+    descriptions: Annotated[list[CVEDescription] | None, BeforeValidator(not_null)] = (
+        Field(default=None)
     )
-    descriptions: list[CVEDescription] | None = None
-    metrics: CVSSMetrics | None = None
+    metrics: object = None
 
 
 class Vulnerability(BaseModel):
@@ -136,30 +130,35 @@ def extract_payload(payload: dict, cve_id: str) -> ExtractionResult | None:
 
     # * REJECT STATUS
 
-    if (status is None) or (status == "Rejected"):
+    if status is None or status == "Rejected":
         return ExtractionResult(vuln_status=status, description=selected_description)
 
     # * METRIC
 
+    if "metrics" not in cve.model_fields_set:
+        return ExtractionResult(vuln_status=status, description=selected_description)
+
+    metrics = CVSSMetrics.model_validate(cve.metrics)
+
     selected_metric_raw: dict | None = None
 
     # no cvss_metric_v31 metric at all
-    if cve.metrics is None or cve.metrics.cvss_metric_v31 is None:
+    if metrics is None or metrics.cvss_metric_v31 is None:
         return ExtractionResult(vuln_status=status, description=selected_description)
 
     # no cvss_metric_v31 metric
-    if len(cve.metrics.cvss_metric_v31) == 0:
+    if len(metrics.cvss_metric_v31) == 0:
         return ExtractionResult(vuln_status=status, description=selected_description)
 
     # finding primary metric
-    for metric in cve.metrics.cvss_metric_v31:
+    for metric in metrics.cvss_metric_v31:
         if metric.get("type") == "Primary":
             selected_metric_raw = metric
             break
 
     # choose first available if no primary
     if selected_metric_raw is None:
-        selected_metric_raw = cve.metrics.cvss_metric_v31[0]
+        selected_metric_raw = metrics.cvss_metric_v31[0]
 
     selected_metric = CVSSMetricV31.model_validate(selected_metric_raw)
 
@@ -173,7 +172,7 @@ def extract_payload(payload: dict, cve_id: str) -> ExtractionResult | None:
 def build_report(record: ExtractionResult | None, cve_id: str, variant: int):
 
     if variant != 3:
-        error("Wrong variant.")
+        raise ValueError("Unsupported variant.")
 
     result: dict = {
         "cve_id": cve_id,

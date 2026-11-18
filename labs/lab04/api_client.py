@@ -7,13 +7,13 @@ ENDPOINT = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 
 def get_api_key():
-    try:
-        api_key = os.environ["NVD_API_KEY"]
-        api_key.strip()
+    api_key = os.getenv("NVD_API_KEY", "").strip() or None
+
+    if api_key:
         debug("Found API key in environment variables.")
-    except KeyError:
-        api_key = None
+    else:
         debug("API key was not found. Running anonymously. ")
+
     return api_key
 
 
@@ -43,4 +43,4 @@ def fetch_response(cve: str) -> dict:
         raise ValueError("Unexpected HTTP status code.")
 
     debug("Request completed with status code:", str(response.status_code))
-    return dict(response.json())
+    return response.json()
