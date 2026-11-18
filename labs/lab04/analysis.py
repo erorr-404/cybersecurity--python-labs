@@ -1,9 +1,9 @@
 # Перевірка даних і правило варіанта
 
 from dataclasses import dataclass
-from typing import Literal, Annotated
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, BeforeValidator
-from labs.lab04.utils import error, debug
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 
 def validate_optional_string(value):
@@ -94,7 +94,22 @@ class ExtractionResult:
     metric: CVSSMetricV31 | None = None
 
 
-def extract_payload(payload: dict, cve_id: str) -> ExtractionResult | None:
+def extract_record(payload: dict, cve_id: str) -> ExtractionResult | None:
+    """Validate an NVD payload and extract the requested CVE's data.
+
+    Args:
+        payload: NVD API response represented as a dictionary.
+        cve_id: CVE identifier that must match the record in ``payload``.
+
+    Returns:
+        The extracted status, English description, and selected CVSS metric,
+        or ``None`` when the response contains no vulnerabilities.
+
+    Raises:
+        ValueError: If the response contains multiple vulnerabilities or the
+            returned CVE identifier does not match ``cve_id``.
+        pydantic.ValidationError: If the payload does not satisfy the model.
+    """
 
     status: str | None = None
     selected_description: str | None = None
@@ -170,6 +185,19 @@ def extract_payload(payload: dict, cve_id: str) -> ExtractionResult | None:
 
 
 def build_report(record: ExtractionResult | None, cve_id: str, variant: int):
+    """Build a structured vulnerability report for the requested CVE variant.
+
+    Args:
+        record: Extracted CVE data, or ``None`` if the record was not found.
+        cve_id: CVE identifier to include in the report.
+        variant: Report variant to build; currently only variant 3 is supported.
+
+    Returns:
+        A dictionary containing the report data and evaluation decision.
+
+    Raises:
+        ValueError: If ``variant`` is not supported.
+    """
 
     if variant != 3:
         raise ValueError("Unsupported variant.")
